@@ -1,4 +1,5 @@
 #include "obstacle.h"
+#include <stdlib.h>
 #include <glut.h>
 
 Obstacle::Obstacle(float x, float y, float width, float height)
@@ -6,15 +7,27 @@ Obstacle::Obstacle(float x, float y, float width, float height)
 
 void Obstacle::render() {
     if (active) {
-        glColor3f(1.0f, 0.0f, 0.0f);  // Red color for obstacles
-        glBegin(GL_QUADS);
-        glVertex2f(x, y);
-        glVertex2f(x + width, y);
-        glVertex2f(x + width, y + height);
-        glVertex2f(x, y + height);
-        glEnd();
+        // Randomly choose a primitive type for rendering
+        if (rand() % 2 == 0) {  // 50% chance to draw a quad
+            glColor3f(1.0f, 0.0f, 0.0f);  // Red color for obstacles
+            glBegin(GL_QUADS);
+            glVertex2f(x, y);
+            glVertex2f(x + width, y);
+            glVertex2f(x + width, y + height);
+            glVertex2f(x, y + height);
+            glEnd();
+        }
+        else {  // Otherwise, draw a triangle
+            glColor3f(0.0f, 0.0f, 1.0f);  // Blue color for triangles
+            glBegin(GL_TRIANGLES);
+            glVertex2f(x, y);
+            glVertex2f(x + width / 2, y + height);
+            glVertex2f(x + width, y);
+            glEnd();
+        }
     }
 }
+
 
 void Obstacle::move(float speed) {
     if (active) {

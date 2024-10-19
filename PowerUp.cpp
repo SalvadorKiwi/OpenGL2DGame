@@ -32,7 +32,7 @@
     }
 
 
-    void PowerUp::render() {
+    void PowerUp::render( ) {
         if (!collected) {
             float kiwiRadius = width / 3;
             float seedRadius = 2.0f;

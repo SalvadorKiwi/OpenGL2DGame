@@ -33,6 +33,8 @@ bool playerLost = false;     // To track whether the player lost (ran out of liv
 
 
 
+
+
 float collectibleSpawnInterval = 5.0f;  // Base spawn interval for collectibles (in seconds)
 float powerUpSpawnInterval = 5.0f;      // Base spawn interval for power-ups (in seconds)
 float powerUp1ActivationTime = -1;  // Time when score multiplier is activated (-1 means inactive)
@@ -283,8 +285,19 @@ void spawnObstacle() {
     const int maxAttempts = 10;
 
     do {
-        randomY = 200.0f;  // Adjust this to randomize height if needed
-        randomX = 1280.0f;
+        // Randomly choose a height: either 200, 301, or a random value between 282 and 400
+        int heightChoice = rand() % 3; // 0, 1, or 2
+        if (heightChoice == 0) {
+            randomY = 200.0f;
+        }
+        else if (heightChoice == 1) {
+            randomY = 321.0f;
+        }
+        else {
+            randomY = 252.0f + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (400.0f - 282.0f))); // Random value between 282 and 400
+        }
+
+        randomX = 1280.0f; // Fixed spawn position off-screen
         attempts++;
 
         if (attempts >= maxAttempts) {
@@ -296,6 +309,8 @@ void spawnObstacle() {
 
     obstacles.emplace_back(randomX, randomY, 50.0f, 50.0f);
 }
+
+
 
 
 
