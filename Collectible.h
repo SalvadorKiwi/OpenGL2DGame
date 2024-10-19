@@ -9,6 +9,8 @@ public:
     // Function to render the collectible
     virtual void render();
 
+    void updatePosition();
+
     // Check if the player has collided with the collectible
     bool checkCollision(float playerX, float playerY, float playerWidth, float playerHeight);
 

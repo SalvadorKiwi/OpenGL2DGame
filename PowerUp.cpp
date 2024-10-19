@@ -32,113 +32,37 @@
     }
 
 
-    void PowerUp::render( ) {
+
+    void PowerUp::render() {
         if (!collected) {
             float kiwiRadius = width / 3;
             float seedRadius = 2.0f;
             float centerRadius = kiwiRadius / 2;
+            float orbitRadius = kiwiRadius * 3.0f;
+            float seedOrbitRadius = kiwiRadius * 0.8f;
+
+            // Define numSegments for smooth circles
+            int numSegments = 100;  // Adjust the number for smoother or more jagged circles
 
             if (type == SCORE_MULTIPLIER) {
                 // Central point for rotation
                 float angle = glutGet(GLUT_ELAPSED_TIME) * 0.05f;  // Slow rotation speed
 
-                // Draw the central rotating point (white dot)
-                glColor3f(1.0f, 1.0f, 1.0f);  // White color for the central dot
-                glBegin(GL_TRIANGLE_FAN);
-                glVertex2f(x + width / 2, y + height / 2);  // Center point for the dot
-                float dotRadius = 5.0f;  // Radius for the dot
-                int numSegments = 100;  // Number of segments for smoothness
+                // Brown border around the kiwi (outer circle)
+                glColor3f(0.55f, 0.27f, 0.07f);  // Brown color
+                glBegin(GL_LINE_LOOP);
                 for (int i = 0; i <= numSegments; i++) {
                     float theta = 2.0f * 3.1415926f * float(i) / float(numSegments);
-                    float dx = dotRadius * cos(theta);
-                    float dy = dotRadius * sin(theta);
+                    float dx = (kiwiRadius + 2.0f) * cos(theta);  // Slightly larger radius for border
+                    float dy = (kiwiRadius + 2.0f) * sin(theta);
                     glVertex2f(x + width / 2 + dx, y + height / 2 + dy);
                 }
                 glEnd();
 
-                // Orbiting green kiwi 1
-                glPushMatrix();  // Save current state
-                glTranslatef(x + width / 2, y + height / 2, 0.0f);  // Move to center
-                glRotatef(angle, 0.0f, 0.0f, 1.0f);  // Rotate around the Z-axis
-                float orbitRadius = 30.0f;  // Orbit radius for kiwi
-
-                // Draw kiwi 1
+                // Draw the kiwi itself (green inner circle)
                 glColor3f(0.0f, 1.0f, 0.0f);  // Green kiwi
                 glBegin(GL_TRIANGLE_FAN);
-                glVertex2f(orbitRadius, 0.0f);  // Kiwi center
-                for (int i = 0; i <= numSegments; i++) {
-                    float theta = 2.0f * 3.1415926f * float(i) / float(numSegments);
-                    float dx = kiwiRadius * cos(theta);  // X coordinate
-                    float dy = kiwiRadius * sin(theta);  // Y coordinate
-                    glVertex2f(orbitRadius + dx, dy);  // Offset by orbitRadius
-                }
-                glEnd();
-
-                // Draw seeds around kiwi 1 (rotating)
-                float seedOrbitRadius = kiwiRadius * 0.8f;  // Radius for seed orbit
-                for (int i = 0; i < 6; i++) {
-                    float seedAngle = (i * 60.0f) * (3.1415926f / 180.0f);  // Seed angles
-                    float seedX = seedOrbitRadius * cos(seedAngle);
-                    float seedY = seedOrbitRadius * sin(seedAngle);
-
-                    glColor3f(0.0f, 0.0f, 0.0f);  // Black color for seeds
-                    glBegin(GL_TRIANGLE_FAN);
-                    glVertex2f(orbitRadius + seedX, seedY);  // Seed position
-                    for (int j = 0; j <= numSegments; j++) {
-                        float theta = 2.0f * 3.1415926f * float(j) / float(numSegments);
-                        float dx = seedRadius * cos(theta);
-                        float dy = seedRadius * sin(theta);
-                        glVertex2f(orbitRadius + seedX + dx, seedY + dy);  // Draw seed
-                    }
-                    glEnd();
-                }
-                glPopMatrix();  // Restore state
-
-                // Orbiting green kiwi 2 (opposite direction)
-                glPushMatrix();  // Save current state
-                glTranslatef(x + width / 2, y + height / 2, 0.0f);  // Move to center
-                glRotatef(-angle, 0.0f, 0.0f, 1.0f);  // Rotate opposite
-
-                // Draw kiwi 2
-                glColor3f(0.0f, 1.0f, 0.0f);  // Green kiwi
-                glBegin(GL_TRIANGLE_FAN);
-                glVertex2f(orbitRadius, 0.0f);  // Kiwi center
-                for (int i = 0; i <= numSegments; i++) {
-                    float theta = 2.0f * 3.1415926f * float(i) / float(numSegments);
-                    float dx = kiwiRadius * cos(theta);  // X coordinate
-                    float dy = kiwiRadius * sin(theta);  // Y coordinate
-                    glVertex2f(orbitRadius + dx, dy);  // Offset by orbitRadius
-                }
-                glEnd();
-
-                // Draw seeds around kiwi 2 (rotating in opposite direction)
-                for (int i = 0; i < 6; i++) {
-                    float seedAngle = (i * 60.0f) * (3.1415926f / 180.0f);
-                    float seedX = seedOrbitRadius * cos(seedAngle);
-                    float seedY = seedOrbitRadius * sin(seedAngle);
-
-                    glColor3f(0.0f, 0.0f, 0.0f);  // Black color for seeds
-                    glBegin(GL_TRIANGLE_FAN);
-                    glVertex2f(orbitRadius + seedX, seedY);
-                    for (int j = 0; j <= numSegments; j++) {
-                        float theta = 2.0f * 3.1415926f * float(j) / float(numSegments);
-                        float dx = seedRadius * cos(theta);
-                        float dy = seedRadius * sin(theta);
-                        glVertex2f(orbitRadius + seedX + dx, seedY + dy);
-                    }
-                    glEnd();
-                }
-                glPopMatrix();  // Restore state
-            }
-
-            else if (type == JUMP_BOOST) {
-                // Draw the golden kiwi fruit (as before)
-                float kiwiRadius = width / 3;  // Smaller radius for the kiwi
-                glColor3f(1.0f, 0.84f, 0.0f);  // Golden color for kiwi
-                glBegin(GL_TRIANGLE_FAN);
-                glVertex2f(x + width / 2, y + height / 2);  // Center point for the circle
-
-                int numSegments = 100;  // Number of segments to make the circle smooth
+                glVertex2f(x + width / 2, y + height / 2);
                 for (int i = 0; i <= numSegments; i++) {
                     float theta = 2.0f * 3.1415926f * float(i) / float(numSegments);
                     float dx = kiwiRadius * cos(theta);
@@ -147,12 +71,10 @@
                 }
                 glEnd();
 
-                // Draw the white center of the kiwi
-                //float centerRadius = kiwiRadius / 2;  // Smaller radius for the center
-                glColor3f(1.0f, 1.0f, 1.0f);  // White color for the center
+                // White center of the kiwi
+                glColor3f(1.0f, 1.0f, 1.0f);  // White center
                 glBegin(GL_TRIANGLE_FAN);
-                glVertex2f(x + width / 2, y + height / 2);  // Center point for the inner circle
-
+                glVertex2f(x + width / 2, y + height / 2);
                 for (int i = 0; i <= numSegments; i++) {
                     float theta = 2.0f * 3.1415926f * float(i) / float(numSegments);
                     float dx = centerRadius * cos(theta);
@@ -161,44 +83,131 @@
                 }
                 glEnd();
 
-                // Draw the seeds
-                glColor3f(0.0f, 0.0f, 0.0f);  // Black color for the seeds
-               // float seedRadius = 2.0f;  // Radius of the seeds
+                // Seeds (use points)
+                float seedOrbitRadius = kiwiRadius * 0.8f;
+                glColor3f(0.0f, 0.0f, 0.0f);  // Black seeds
+                glPointSize(5.0f);  // Set point size for seeds
+                glBegin(GL_POINTS);
                 for (int i = 0; i < 6; i++) {
-                    float angle = (i * 60.0f) * (3.1415926f / 180.0f);
-                    float seedX = (centerRadius * 0.7) * cos(angle);
-                    float seedY = (centerRadius * 0.7) * sin(angle);
-
-                    glBegin(GL_TRIANGLE_FAN);
-                    glVertex2f(x + width / 2 + seedX, y + height / 2 + seedY);
-                    for (int j = 0; j <= numSegments; j++) {
-                        float theta = 2.0f * 3.1415926f * float(j) / float(numSegments);
-                        float dx = seedRadius * cos(theta);
-                        float dy = seedRadius * sin(theta);
-                        glVertex2f(x + width / 2 + seedX + dx, y + height / 2 + seedY + dy);
-                    }
-                    glEnd();
+                    float seedAngle = (i * 60.0f) * (3.1415926f / 180.0f);
+                    float seedX = seedOrbitRadius * cos(seedAngle);
+                    float seedY = seedOrbitRadius * sin(seedAngle);
+                    glVertex2f(x + width / 2 + seedX, y + height / 2 + seedY);  // Draw seed as a point
                 }
+                glEnd();
 
-                // Draw the wings with a flapping effect
-                float wingHeight = 30.0f;  // Height of the wings
-                float wingWidth = 20.0f;   // Width of the wings
-                float wingYPosition = y + height / 2 + (sin(glutGet(GLUT_ELAPSED_TIME) * 0.005) * 10);  // Flapping effect
+                // Repeat the same steps for the second kiwi with reverse rotation
+                glPushMatrix();
+                glTranslatef(x + width / 2, y + height / 2, 0.0f);
+                glRotatef(-angle, 0.0f, 0.0f, 1.0f);
+
+                // Draw the brown border around the second kiwi
+                glColor3f(0.55f, 0.27f, 0.07f);  // Brown color
+                glBegin(GL_LINE_LOOP);
+                for (int i = 0; i <= numSegments; i++) {
+                    float theta = 2.0f * 3.1415926f * float(i) / float(numSegments);
+                    float dx = (kiwiRadius + 2.0f) * cos(theta);  // Slightly larger radius for border
+                    float dy = (kiwiRadius + 2.0f) * sin(theta);
+                    glVertex2f(orbitRadius + dx, dy);
+                }
+                glEnd();
+
+                // Draw the second kiwi (green inner circle)
+                glColor3f(0.0f, 1.0f, 0.0f);
+                glBegin(GL_TRIANGLE_FAN);
+                for (int i = 0; i <= numSegments; i++) {
+                    float theta = 2.0f * 3.1415926f * float(i) / float(numSegments);
+                    float dx = kiwiRadius * cos(theta);
+                    float dy = kiwiRadius * sin(theta);
+                    glVertex2f(orbitRadius + dx, dy);
+                }
+                glEnd();
+
+                // Seeds (as points for second kiwi)
+                glColor3f(0.0f, 0.0f, 0.0f);
+                glPointSize(5.0f);
+                glBegin(GL_POINTS);
+                for (int i = 0; i < 6; i++) {
+                    float seedAngle = (i * 60.0f) * (3.1415926f / 180.0f);
+                    float seedX = seedOrbitRadius * cos(seedAngle);
+                    float seedY = seedOrbitRadius * sin(seedAngle);
+                    glVertex2f(orbitRadius + seedX, seedY);  // Draw seed as a point
+                }
+                glEnd();
+
+                glPopMatrix();
+            }
+
+            // Jump boost power-up logic (same logic for kiwi, seeds, and border as above)
+            if (type == JUMP_BOOST) {
+                // Wing flapping logic
+                float flapAngle = 20.0f * sin(glutGet(GLUT_ELAPSED_TIME) * 0.01f);  // Wing flap angle
+
+                // Draw wings
+                glPushMatrix();
+                glTranslatef(x + width / 2, y + height / 2, 0.0f);
 
                 // Left wing
-                glColor3f(1.0f, 1.0f, 1.0f);  // White color for the wings
+                glPushMatrix();
+                glRotatef(flapAngle, 0.0f, 0.0f, 1.0f);  // Flap rotation for left wing
+                glColor3f(0.9f, 0.9f, 0.9f);  // Light grey wings
                 glBegin(GL_TRIANGLES);
-                glVertex2f(x + width / 2 - wingWidth - 5.0f, wingYPosition);  // Left tip
-                glVertex2f(x + width / 2 - wingWidth - 15.0f, wingYPosition - wingHeight); // Bottom left
-                glVertex2f(x + width / 2 - wingWidth - 5.0f, wingYPosition - wingHeight); // Bottom right
+                glVertex2f(-kiwiRadius, 0.0f);           // Kiwi center
+                glVertex2f(-kiwiRadius - 20.0f, 10.0f);  // Left wing top
+                glVertex2f(-kiwiRadius - 20.0f, -10.0f); // Left wing bottom
+                glEnd();
+                glPopMatrix();
+
+                // Right wing
+                glPushMatrix();
+                glRotatef(-flapAngle, 0.0f, 0.0f, 1.0f);  // Flap rotation for right wing
+                glColor3f(0.9f, 0.9f, 0.9f);  // Light grey wings
+                glBegin(GL_TRIANGLES);
+                glVertex2f(kiwiRadius, 0.0f);            // Kiwi center
+                glVertex2f(kiwiRadius + 20.0f, 10.0f);   // Right wing top
+                glVertex2f(kiwiRadius + 20.0f, -10.0f);  // Right wing bottom
+                glEnd();
+                glPopMatrix();
+
+                glPopMatrix(); // End of wing drawing
+
+                // Draw the kiwi itself (golden for jump boost)
+                glColor3f(1.0f, 0.84f, 0.0f);  // Golden kiwi
+                glBegin(GL_TRIANGLE_FAN);
+                glVertex2f(x + width / 2, y + height / 2);
+                for (int i = 0; i <= numSegments; i++) {
+                    float theta = 2.0f * 3.1415926f * float(i) / float(numSegments);
+                    float dx = kiwiRadius * cos(theta);
+                    float dy = kiwiRadius * sin(theta);
+                    glVertex2f(x + width / 2 + dx, y + height / 2 + dy);
+                }
                 glEnd();
 
-                // Right wing with up-and-down rotation
-                glBegin(GL_TRIANGLES);
-                glVertex2f(x + width / 2 + wingWidth + 5.0f, wingYPosition);  // Right tip
-                glVertex2f(x + width / 2 + wingWidth + 15.0f, wingYPosition - wingHeight); // Bottom left
-                glVertex2f(x + width / 2 + wingWidth + 5.0f, wingYPosition - wingHeight); // Bottom right
+                // White center of the kiwi
+                glColor3f(1.0f, 1.0f, 1.0f);  // White center
+                glBegin(GL_TRIANGLE_FAN);
+                glVertex2f(x + width / 2, y + height / 2);
+                for (int i = 0; i <= numSegments; i++) {
+                    float theta = 2.0f * 3.1415926f * float(i) / float(numSegments);
+                    float dx = centerRadius * cos(theta);
+                    float dy = centerRadius * sin(theta);
+                    glVertex2f(x + width / 2 + dx, y + height / 2 + dy);
+                }
+                glEnd();
+
+                // Seeds (as points)
+                glColor3f(0.0f, 0.0f, 0.0f);  // Black seeds
+                glPointSize(5.0f);  // Set point size for seeds
+                glBegin(GL_POINTS);
+                for (int i = 0; i < 6; i++) {
+                    float seedAngle = (i * 60.0f) * (3.1415926f / 180.0f);
+                    float seedX = seedOrbitRadius * cos(seedAngle);
+                    float seedY = seedOrbitRadius * sin(seedAngle);
+                    glVertex2f(x + width / 2 + seedX, y + height / 2 + seedY);  // Draw seed as a point
+                }
                 glEnd();
             }
-        }
     }
+}
+
+
