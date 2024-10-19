@@ -15,6 +15,9 @@ public:
     // Virtual function to apply the effect (overridden by PowerUp)
     virtual void applyEffect(int& score);
 
+    float getWidth() const { return width; }
+    float getHeight() const { return height; }
+
     // Getters and setters for position
     float getX() const;
     float getY() const;

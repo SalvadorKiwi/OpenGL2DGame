@@ -9,6 +9,10 @@ public:
     // Function to render the obstacle
     void render();
 
+
+    float getWidth() const { return width; }
+    float getHeight() const { return height; }
+
     // Move the obstacle from right to left based on speed
     void move(float speed);
 

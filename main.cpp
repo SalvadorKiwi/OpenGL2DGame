@@ -5,6 +5,7 @@
 #include "obstacle.h"
 #include "collectible.h"
 #include "powerup.h"
+#include <algorithm>  // For std::any_of
 #include <glut.h>
 #include <math.h>
 #include <vector>
@@ -27,7 +28,7 @@ float randomPowerUp2SpawnDelay = 20.0f;  // Initial random delay for PowerUp2 (b
 
 float gameDuration = 50.0f;  // Game lasts for 50 seconds
 float gameStartTime = 0.0f;  // To track when the game starts
-bool gameOver = false;       // To track whether the game is over
+//bool gameOver = false;       // To track whether the game is over
 bool playerLost = false;     // To track whether the player lost (ran out of lives)
 
 
@@ -40,7 +41,8 @@ float obstacleSpawnInterval = 5.0f;     // Base spawn interval for obstacles (in
 int score = 0;
 static int scoreMultiplier = 1;
 float playerJumpHeight = 130.0f;  // Initial jump height
-int lives = 3333;  // Player's lives
+int lives =333;  // Player's lives
+float timeLeft = gameDuration + gameStartTime;
 float gameTime = 50.0;  // Game duration in seconds
 float startTime = 0.0f;  // Store when the game starts
 int scoreMultiplierCount = 0;
@@ -98,24 +100,6 @@ void displayScore() {
     }
 }
 
-void displayRemainingTime(float currentTime) {
-    float timeLeft = gameDuration - (currentTime - gameStartTime);
-
-    // If timeLeft is negative or zero, the game is over
-    if (timeLeft <= 0) {
-        timeLeft = 0;
-        gameOver = true;
-    }
-
-    // Display remaining time
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glRasterPos2f(600, 690);  // Position for the timer
-    char timeText[50];
-    sprintf(timeText, "Time Left: %.1f", timeLeft);
-    for (char* c = timeText; *c != '\0'; c++) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
-    }
-}
 void displayEndGameScreen() {
     glColor3f(1.0f, 0.0f, 0.0f);  // Red for "Game Lost" or "Game Ended"
     glRasterPos2f(600, 360);  // Center the message
@@ -131,37 +115,49 @@ void displayEndGameScreen() {
     for (char* c = endMessage; *c != '\0'; c++) {
         glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
     }
+}
 
-    // Display instructions to restart the game
-    glColor3f(1.0f, 1.0f, 1.0f);  // White color for instructions
-    glRasterPos2f(500, 300);  // Position below the end message
-    char restartMessage[] = "Press SPACE to restart the game";
-    for (char* c = restartMessage; *c != '\0'; c++) {
+void displayRemainingTime(float currentTime) {
+     timeLeft = gameDuration - (currentTime - gameStartTime);
+
+    // If timeLeft is negative or zero, the game is over
+    if (timeLeft <= 0) {
+        timeLeft = 0;
+        //gameOver = true;
+        currentState = GAME_ENDED;   // Time ran out
+		displayEndGameScreen();
+		return;
+    }
+
+    // Display remaining time
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glRasterPos2f(600, 690);  // Position for the timer
+    char timeText[50];
+    sprintf(timeText, "Time Left: %.1f", timeLeft);
+    for (char* c = timeText; *c != '\0'; c++) {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
     }
 }
 
-void displayEndGameMessage() {
-    glColor3f(1.0f, 0.0f, 0.0f);  // Red color for "Game End" or "Game Lose"
-    glRasterPos2f(600, 360);  // Centered on the screen
 
-    char endMessage[50];
-    if (playerLost) {
-        sprintf(endMessage, "Game Lose! Final Score: %d", score);
-    }
-    else {
-        sprintf(endMessage, "Game End! Final Score: %d", score);
-    }
 
-    for (char* c = endMessage; *c != '\0'; c++) {
-        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
-    }
-}
+void checkEndGame() {
+	if (lives <= 0) {
+		lives = 0;
+		currentState = GAME_LOST;
+	}
+	if (timeLeft <= 0) {
+		currentState = GAME_ENDED;
+	}
+}   
 
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
     glLoadIdentity();
-
+    if (timeLeft <= 0) {
+        timeLeft = 0;
+        currentState = GAME_ENDED;
+    }
     if (currentState == RUNNING) {
         background.update();
         background.render();
@@ -192,22 +188,63 @@ void display() {
     glutSwapBuffers();
 }
 
+bool checkOverlap(float x1, float y1, float width1, float height1, float x2, float y2, float width2, float height2) {
+    // Check if two rectangles overlap
+    return !(x1 + width1 < x2 || x2 + width2 < x1 || y1 + height1 < y2 || y2 + height2 < y1);
+}
+
 
 void spawnCollectible() {
     float minY = player.getY();
     float maxY = player.getY() + playerJumpHeight;
-    float randomY = minY + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (maxY - minY)));
+    float randomY, randomX;
+    int attempts = 0;  // Track how many times we try to find a valid position
+    const int maxAttempts = 10;  // Limit the number of attempts to avoid freezing
 
-    collectible = Collectible(1280.0f, randomY, 50.0f, 50.0f);  // Spawn on the right side off-screen
+    do {
+        randomY = minY + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (maxY - minY)));
+        randomX = 1280.0f;
+
+        // Check overlap with power-ups and obstacles
+        attempts++;
+        if (attempts >= maxAttempts) {
+            // Fallback: force a position and break out of the loop
+            break;
+        }
+    } while (checkOverlap(randomX, randomY, 50.0f, 50.0f, powerUp1.getX(), powerUp1.getY(), powerUp1.getWidth(), powerUp1.getHeight()) ||
+        checkOverlap(randomX, randomY, 50.0f, 50.0f, powerUp2.getX(), powerUp2.getY(), powerUp2.getWidth(), powerUp2.getHeight()) ||
+        std::any_of(obstacles.begin(), obstacles.end(), [&](Obstacle& obs) {
+            return checkOverlap(randomX, randomY, 50.0f, 50.0f, obs.getX(), obs.getY(), obs.getWidth(), obs.getHeight());
+            }));
+
+    // Place the collectible (after maxAttempts, it'll fallback to the last calculated random position)
+    collectible = Collectible(randomX, randomY, 50.0f, 50.0f);
 }
+
 
 void spawnPowerUp1() {
     if (scoreMultiplierCount < 2) {  // Max two power-ups
         float minY = player.getY();
         float maxY = player.getY() + playerJumpHeight;
-        float randomY = minY + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (maxY - minY)));
+        float randomY, randomX;
+        int attempts = 0;
+        const int maxAttempts = 10;
 
-        powerUp1 = PowerUp(1280.0f, randomY, 50.0f, 50.0f, PowerUp::SCORE_MULTIPLIER);
+        do {
+            randomY = minY + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (maxY - minY)));
+            randomX = 1280.0f;
+            attempts++;
+
+            if (attempts >= maxAttempts) {
+                break;
+            }
+        } while (checkOverlap(randomX, randomY, 50.0f, 50.0f, collectible.getX(), collectible.getY(), collectible.getWidth(), collectible.getHeight()) ||
+            checkOverlap(randomX, randomY, 50.0f, 50.0f, powerUp2.getX(), powerUp2.getY(), powerUp2.getWidth(), powerUp2.getHeight()) ||
+            std::any_of(obstacles.begin(), obstacles.end(), [&](Obstacle& obs) {
+                return checkOverlap(randomX, randomY, 50.0f, 50.0f, obs.getX(), obs.getY(), obs.getWidth(), obs.getHeight());
+                }));
+
+        powerUp1 = PowerUp(randomX, randomY, 50.0f, 50.0f, PowerUp::SCORE_MULTIPLIER);
         scoreMultiplierCount++;
     }
 }
@@ -216,32 +253,64 @@ void spawnPowerUp2() {
     if (jumpBoostCount < 2) {  // Max two power-ups
         float minY = player.getY();
         float maxY = player.getY() + playerJumpHeight;
-        float randomY = minY + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (maxY - minY)));
+        float randomY, randomX;
+        int attempts = 0;
+        const int maxAttempts = 10;
 
-        powerUp2 = PowerUp(1280.0f, randomY, 50.0f, 50.0f, PowerUp::JUMP_BOOST);
+        do {
+            randomY = minY + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (maxY - minY)));
+            randomX = 1280.0f;
+            attempts++;
+
+            if (attempts >= maxAttempts) {
+                break;
+            }
+        } while (checkOverlap(randomX, randomY, 50.0f, 50.0f, collectible.getX(), collectible.getY(), collectible.getWidth(), collectible.getHeight()) ||
+            checkOverlap(randomX, randomY, 50.0f, 50.0f, powerUp1.getX(), powerUp1.getY(), powerUp1.getWidth(), powerUp1.getHeight()) ||
+            std::any_of(obstacles.begin(), obstacles.end(), [&](Obstacle& obs) {
+                return checkOverlap(randomX, randomY, 50.0f, 50.0f, obs.getX(), obs.getY(), obs.getWidth(), obs.getHeight());
+                }));
+
+        powerUp2 = PowerUp(randomX, randomY, 50.0f, 50.0f, PowerUp::JUMP_BOOST);
         jumpBoostCount++;
     }
 }
 
 
 void spawnObstacle() {
-    float randomY = 200.0f;  // You can adjust this to randomize the height if needed
-    obstacles.emplace_back(1280.0f, randomY, 50.0f, 50.0f);  // Spawn a new obstacle
+    float randomY, randomX;
+    int attempts = 0;
+    const int maxAttempts = 10;
+
+    do {
+        randomY = 200.0f;  // Adjust this to randomize height if needed
+        randomX = 1280.0f;
+        attempts++;
+
+        if (attempts >= maxAttempts) {
+            break;
+        }
+    } while (checkOverlap(randomX, randomY, 50.0f, 50.0f, collectible.getX(), collectible.getY(), collectible.getWidth(), collectible.getHeight()) ||
+        checkOverlap(randomX, randomY, 50.0f, 50.0f, powerUp1.getX(), powerUp1.getY(), powerUp1.getWidth(), powerUp1.getHeight()) ||
+        checkOverlap(randomX, randomY, 50.0f, 50.0f, powerUp2.getX(), powerUp2.getY(), powerUp2.getWidth(), powerUp2.getHeight()));
+
+    obstacles.emplace_back(randomX, randomY, 50.0f, 50.0f);
 }
+
+
 
 void updateGame() {
     float currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;  // Get time in seconds
-    if (currentState != RUNNING) {
+    if (currentState == GAME_ENDED) {
+        display();
         return;  // Don't update game if it's not running
     }
-    if (gameOver) {
-        displayEndGameMessage();
-        glutSwapBuffers();
-        return;  // Don't update the game anymore
-    }
+
+    // Check if time is up
     float timeLeft = gameDuration - (currentTime - gameStartTime);
     if (timeLeft <= 0) {
-        gameOver = true;  // End the game when time is up
+        currentState = GAME_ENDED;  // End the game when time is up
+        display();
         return;
     }
     static float lastCSpawnTime = 0;
@@ -349,16 +418,6 @@ void updateGame() {
     glutPostRedisplay();  // Trigger display update
 }
 
-void restartGame() {
-    // Reset game state and variables
-    score = 0;
-    lives = 3;  // Or however many lives you want to give
-    Background::speed = 5.0f;  // Reset the game speed
-    gameStartTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;  // Restart the timer
-    currentState = RUNNING;  // Set state back to running
-    obstacles.clear();  // Clear obstacles
-    // Reset other game elements like collectibles, power-ups, etc.
-}
 
 
 
@@ -369,12 +428,6 @@ void keyboard(unsigned char key, int x, int y) {
         }
         else if (key == 's') {  // Duck with 's'
             player.duck();
-        }
-    }
-    else {
-        // Game is over, allow restarting
-        if (key == ' ') {
-            restartGame();  // Call function to restart the game
         }
     }
 }
@@ -395,11 +448,14 @@ int main(int argc, char** argv) {
 
     // Set the background color
     glClearColor(0.5f, 0.8f, 1.0f, 1.0f);  // Sky blue
-
+	
     setOrthographicProjection();
 
     // Set up the game loop and input callbacks
+    
     glutDisplayFunc(display);
+
+
     glutIdleFunc(updateGame);
     glutKeyboardFunc(keyboard);
     glutKeyboardUpFunc(keyboardUp);
