@@ -16,9 +16,7 @@ Background::Background(float groundHeight)
 }
 
 void Background::updateClouds() {
-
-    if (collision == 0)
-    {
+    if (collision == 0) {
         for (size_t i = 0; i < cloudX.size(); ++i) {
             cloudX[i] -= speed; // Move cloud to the left
             if (cloudX[i] < -100) { // Reset cloud position
@@ -27,7 +25,6 @@ void Background::updateClouds() {
         }
     }
     else {
-		
         for (size_t i = 0; i < cloudX.size(); ++i) {
             cloudX[i] += 350; // Move cloud to the left
             if (cloudX[i] < -100) { // Reset cloud position
@@ -38,21 +35,18 @@ void Background::updateClouds() {
 }
 
 void Background::updateTrees() {
-
-    if (collision == 0)
-    {
+    if (collision == 0) {
         for (size_t i = 0; i < treeX.size(); ++i) {
-            treeX[i] -= speed; // Move cloud to the left
-            if (treeX[i] < -100) { // Reset cloud position
+            treeX[i] -= speed; // Move tree to the left
+            if (treeX[i] < -100) { // Reset tree position
                 treeX[i] = 1280 + rand() % 100; // Randomly respawn
             }
         }
     }
     else {
-
         for (size_t i = 0; i < treeX.size(); ++i) {
-            treeX[i] += 350; // Move cloud to the left
-            if (treeX[i] < -100) { // Reset cloud position
+            treeX[i] += 350; // Move tree to the left
+            if (treeX[i] < -100) { // Reset tree position
                 treeX[i] = 1280 + rand() % 100; // Randomly respawn
             }
         }
@@ -110,6 +104,34 @@ void Background::drawSun(float x, float y) {
         glVertex2f(x + cos(angle) * 30, y + sin(angle) * 30);
     }
     glEnd();
+
+    // Draw sun rays
+    glColor3f(1.0f, 1.0f, 0.0f); // Yellow color for rays
+    for (int k = 0; k < 12; ++k) { // Draw 12 rays
+        float angle = k * (2.0f * 3.14159f / 12);
+        float startX = x + cos(angle) * 30; // Start at sun's edge
+        float startY = y + sin(angle) * 30;
+        float endX = x + cos(angle) * 50; // End point of ray
+        float endY = y + sin(angle) * 50;
+
+        glBegin(GL_LINES);
+        glVertex2f(startX, startY);
+        glVertex2f(endX, endY);
+        glEnd();
+    }
+}
+
+void Background::drawGroundTexture() {
+    glColor3f(0.2f, 0.5f, 0.2f); // A slightly darker green for the texture
+    glPointSize(3.0f); // Set the point size
+
+    glBegin(GL_POINTS);
+    for (float x = 0; x < 1280; x += 20) { // Adjust the spacing as needed
+        for (float y = 0; y < groundHeight; y += 10) { // Adjust the spacing as needed
+            glVertex2f(x + rand() % 10 - 5, y + rand() % 10 - 5); // Random offset for a more natural look
+        }
+    }
+    glEnd();
 }
 
 void Background::render() {
@@ -131,6 +153,8 @@ void Background::render() {
     glVertex2f(0.0f, groundHeight);
     glEnd();
 
+    drawGroundTexture();
+
     // Render clouds
     for (const auto& x : cloudX) {
         drawCloud(x, 500); // Example y-coordinate for clouds
@@ -143,4 +167,15 @@ void Background::render() {
 
     // Draw the sun
     drawSun(100, 600); // Position the sun in the sky
+
+    // Outline the ground
+    glColor3f(0.0f, 0.0f, 0.0f); // Black color for outline
+    glBegin(GL_LINE_LOOP);
+    glVertex2f(0.0f, 0.0f);
+    glVertex2f(1280.0f, 0.0f);
+    glVertex2f(1280.0f, groundHeight);
+    glVertex2f(0.0f, groundHeight);
+    glEnd();
+
+    
 }

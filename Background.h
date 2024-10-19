@@ -27,6 +27,7 @@ private:
     void drawTree(float x, float y);   // Draw individual trees
     void drawCloud(float x, float y);   // Draw individual clouds
     void drawSun(float x, float y);     // Draw the sun
+    void drawGroundTexture();
 };
 
 #endif // BACKGROUND_H
