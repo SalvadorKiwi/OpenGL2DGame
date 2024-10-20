@@ -89,7 +89,6 @@
     <ClCompile Include="OpenGL2DTemplate.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PowerUp.cpp" />
-    <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Background.h" />
