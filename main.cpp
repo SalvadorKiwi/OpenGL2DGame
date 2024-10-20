@@ -455,7 +455,7 @@ void keyboardUp(unsigned char key, int x, int y) {
     }
 }
 
-int main(int argc, char** argv) {
+void main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(1280, 720);
@@ -476,5 +476,4 @@ int main(int argc, char** argv) {
     glutKeyboardUpFunc(keyboardUp);
 
     glutMainLoop();
-    return 0;
 }

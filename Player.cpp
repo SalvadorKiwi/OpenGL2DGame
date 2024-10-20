@@ -137,7 +137,7 @@ void Player::render() {
     glVertex2f(x + width / 2 - 28, y + bodyHeight + headRadius / 4); // Left point of the crown
     glVertex2f(x + width / 2 - 20, y + bodyHeight + headRadius / 4 + 20); // Left point of the crown
 
-    glVertex2f(x + width / 2, y + bodyHeight + headRadius / 4 + 30 + 15); // Top point of the crown
+    glVertex2f(x + (width / 2 )+5, y + bodyHeight + headRadius / 4 + 38 ); // Top point of the crown
     glVertex2f(x + width / 2 + 20, y + bodyHeight + headRadius / 4 + 20); // Right point of the crown
     glEnd();
 
