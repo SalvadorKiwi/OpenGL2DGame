@@ -18,7 +18,9 @@
 
 
 
-
+void playBackGroundMusic() {
+    PlaySoundA("C:\\Users\\kiwi\\Desktop\\GAMEsfx\\BG.wav", NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+}
 
 
 enum GameState {
@@ -474,6 +476,7 @@ void main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(1280, 720);
+	playBackGroundMusic();
     glutCreateWindow("Kiwi Infinite Runner");
 
     // Set the background color
