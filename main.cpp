@@ -6,9 +6,20 @@
 #include "collectible.h"
 #include "powerup.h"
 #include <algorithm>  // For std::any_of
+
+//sound stuff
+#include <windows.h>    
+#include <mmsystem.h>   
+//sound stuff
 #include <glut.h>
 #include <math.h>
 #include <vector>
+        
+
+
+
+
+
 
 enum GameState {
     RUNNING,      // Game is running
@@ -43,7 +54,7 @@ float obstacleSpawnInterval = 5.0f;     // Base spawn interval for obstacles (in
 int score = 0;
 static int scoreMultiplier = 1;
 float playerJumpHeight = 130.0f;  // Initial jump height
-int lives =3;  // Player's lives
+int lives =5;  // Player's lives
 float timeLeft = gameDuration + gameStartTime;
 float gameTime = 50.0;  // Game duration in seconds
 float startTime = 0.0f;  // Store when the game starts
@@ -71,7 +82,7 @@ void setOrthographicProjection() {
 
 void displayHealthBar() {
     // Calculate health bar width based on lives
-    float currentHealthWidth = (HEALTH_BAR_WIDTH / 3) * lives;  // Scale based on max lives
+    float currentHealthWidth = (HEALTH_BAR_WIDTH / 5) * lives;  // Scale based on max lives
 
     // Draw the health bar background (red)
     glColor3f(1.0f, 0.0f, 0.0f);  // Red color
@@ -315,6 +326,7 @@ void spawnObstacle() {
 
 
 void updateGame() {
+    
     float currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;  // Get time in seconds
     if (currentState == GAME_ENDED) {
         display();
@@ -397,6 +409,9 @@ void updateGame() {
     // Check for collisions with collectibles and power-ups
     if (collectible.checkCollision(player.getX(), player.getY(), player.getWidth(), player.getHeight())) {
         collectible.applyEffect(score);  // Add 25 to the score
+		
+		
+       
     }
 
     // Activate and handle score multiplier
@@ -471,8 +486,10 @@ void main(int argc, char** argv) {
     glutDisplayFunc(display);
 
 
+
     glutIdleFunc(updateGame);
     glutKeyboardFunc(keyboard);
+    
     glutKeyboardUpFunc(keyboardUp);
 
     glutMainLoop();
